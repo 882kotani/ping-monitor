@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ネットワーク死活監視ダッシュボード</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-title">
+        <h1>🌐 Network Ping Monitor</h1>
+        <button type="button" class="info-btn" onclick="openReadmeModal()" title="システムマニュアル (README)">i</button>
+        <span class="badge" id="self-status-badge">Checking...</span>
+      </div>
+      <div class="server-info">
+        <span>ホスト: <strong id="self-ip">localhost:50002</strong></span>
+        <span>稼働時間: <strong id="self-uptime">-</strong></span>
+        <span>メモリ: <strong id="self-mem">-</strong></span>
+        <span>CPU負荷: <strong id="self-cpu">-</strong></span>
+      </div>
+    </header>
+
+    <section class="summary-cards">
+      <div class="card card-total">
+        <div class="card-num" id="stat-total">0</div>
+        <div class="card-label">総監視数</div>
+      </div>
+      <div class="card card-up">
+        <div class="card-num" id="stat-up">0</div>
+        <div class="card-label">正常 (UP)</div>
+      </div>
+      <div class="card card-down">
+        <div class="card-num" id="stat-down">0</div>
+        <div class="card-label">異常 (DOWN)</div>
+      </div>
+      <div class="card card-disabled">
+        <div class="card-num" id="stat-disabled">0</div>
+        <div class="card-label">無効 (Disabled)</div>
+      </div>
+    </section>
+
+    <main class="main-content">
+      <section class="section targets-section">
+        <div class="section-header">
+          <h2>監視対象機器一覧</h2>
+          <div class="header-right-controls">
+            <!-- ビュー切り替えボタン (リスト / カード) -->
+            <div class="view-toggle">
+              <button type="button" class="view-btn active" id="view-btn-list" onclick="switchTargetView('list')" title="リスト表示">☰ リスト</button>
+              <button type="button" class="view-btn" id="view-btn-card" onclick="switchTargetView('card')" title="カード表示 (4カラム)">⊞ カード</button>
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">＋ 機器を追加</button>
+          </div>
+        </div>
+
+        <!-- 1. リスト表示パターン (既存テーブル) -->
+        <div class="table-wrapper" id="target-list-view">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 36px;"></th>
+                <th>状態</th>
+                <th>機器名 (Label)</th>
+                <th>IP アドレス</th>
+                <th>応答時間</th>
+                <th>Ping設定</th>
+                <th>有効</th>
+                <th style="width: 190px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="target-table-body"></tbody>
+          </table>
+        </div>
+
+        <!-- 2. カード表示パターン (4カラムグリッド) -->
+        <div class="card-grid-wrapper hidden" id="target-card-view">
+          <div class="device-card-grid" id="target-card-grid"></div>
+        </div>
+      </section>
+
+      <section class="section side-section">
+        <details class="panel accordion-panel" open>
+          <summary class="accordion-header">
+            <h3>⚡ 即時Pingテストツール</h3>
+            <span class="accordion-icon">▼</span>
+          </summary>
+          <div class="accordion-content">
+            <p class="panel-desc">※ 登録問わず任意のIPへその場でPingを1発送信します。</p>
+            <form id="ping-test-form">
+              <div class="form-group">
+                <label for="test-ip">テスト対象 IP アドレス:</label>
+                <input type="text" id="test-ip" placeholder="192.168.1.1" required>
+              </div>
+              <div class="form-group">
+                <label for="test-timeout">タイムアウト時間 (ms):</label>
+                <div class="test-inline-group">
+                  <input type="number" id="test-timeout" value="2000" min="100" max="10000">
+                  <button type="submit" class="btn btn-secondary" id="test-btn">テスト送信</button>
+                </div>
+                <small class="help-text">※ 返答を待つ最大上限時間です (1000ms = 1秒)</small>
+              </div>
+              <div id="test-result" class="test-result-box hidden"></div>
+            </form>
+          </div>
+        </details>
+
+        <details class="panel accordion-panel" open>
+          <summary class="accordion-header">
+            <h3>⚙ 監視方式・パラメータ設定</h3>
+            <span class="accordion-icon">▼</span>
+          </summary>
+          <div class="accordion-content">
+            <form id="settings-form">
+              <div class="form-group">
+                <label>監視方式の選択 (クリックして切替):</label>
+                <div class="mode-segmented-control">
+                  <button type="button" class="mode-tab-btn" id="tab-mode-schedule" onclick="selectMonitorMode('schedule')">
+                    <span class="tab-title">① 指定時刻セット監視</span>
+                    <span class="tab-status-badge">選択中</span>
+                  </button>
+                  <button type="button" class="mode-tab-btn active" id="tab-mode-interval" onclick="selectMonitorMode('interval')">
+                    <span class="tab-title">② ms周期で監視</span>
+                    <span class="tab-status-badge">選択中</span>
+                  </button>
+                </div>
+                <input type="hidden" id="setting-mode-select" value="interval">
+              </div>
+
+              <div id="mode-schedule-box" class="form-group hidden">
+                <label>監視スケジュールの追加:</label>
+                <div class="schedule-creator">
+                  <select id="sch-type-select">
+                    <option value="daily">毎日</option>
+                    <option value="once">一度だけ</option>
+                  </select>
+                  <input type="datetime-local" id="sch-datetime-picker">
+                  <button type="button" class="btn btn-secondary" onclick="addScheduleItem()">追加</button>
+                </div>
+
+                <div class="schedule-list-wrapper">
+                  <label>登録中の指定時刻一覧:</label>
+                  <ul id="schedule-list" class="schedule-list"></ul>
+                </div>
+              </div>
+
+              <div id="mode-interval-box" class="form-group">
+                <label for="setting-interval-ms">監視周期 (ms):</label>
+                <input type="number" id="setting-interval-ms" min="1000" step="1000" placeholder="例: 30000 (30秒)">
+              </div>
+
+              <div class="form-group">
+                <label for="setting-timeout">標準タイムアウト (ms):</label>
+                <input type="number" id="setting-timeout" min="100" max="10000" step="100" required>
+              </div>
+              <div class="form-group">
+                <label for="setting-retry">標準リトライ回数:</label>
+                <input type="number" id="setting-retry" min="0" max="10" required>
+              </div>
+              <div class="form-group">
+                <label for="setting-webhooks">標準 Webhook URL (改行区切り):</label>
+                <textarea id="setting-webhooks" rows="2"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">基本設定を保存</button>
+            </form>
+          </div>
+        </details>
+
+        <details class="panel accordion-panel" open>
+          <summary class="accordion-header">
+            <h3>📜 リアルタイム監視ログ</h3>
+            <span class="accordion-icon">▼</span>
+          </summary>
+          <div class="accordion-content">
+            <div class="log-container" id="log-container"></div>
+          </div>
+        </details>
+      </section>
+    </main>
+  </div>
+
+  <!-- 機器追加 / 編集モーダル -->
+  <div class="modal" id="device-modal">
+    <div class="modal-content">
+      <h3 id="modal-title">機器の追加</h3>
+      <form id="device-form">
+        <input type="hidden" id="device-id">
+        <div class="form-group">
+          <label for="device-label">機器名 (Label) *</label>
+          <input type="text" id="device-label" required>
+        </div>
+        <div class="form-group">
+          <label for="device-ip">IP アドレス *</label>
+          <input type="text" id="device-ip" required pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+        </div>
+        <div class="form-group">
+          <label for="device-webhooks">個別 Webhook URL (改行で複数可)</label>
+          <textarea id="device-webhooks" rows="2"></textarea>
+        </div>
+        
+        <div class="form-group checkbox-group">
+          <label><input type="checkbox" id="device-custom-ping" onchange="toggleCustomPingFields(this.checked)"> 個別のPing設定を行う</label>
+        </div>
+        
+        <div id="custom-ping-container" class="custom-ping-box hidden">
+          <div class="form-group">
+            <label for="device-timeout">個別タイムアウト (ms)</label>
+            <input type="number" id="device-timeout" min="100" max="10000" step="100">
+          </div>
+          <div class="form-group">
+            <label for="device-retry">個別リトライ回数</label>
+            <input type="number" id="device-retry" min="0" max="10">
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label><input type="checkbox" id="device-enabled" checked> 監視を有効にする</label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeModal()">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- README 表示用モーダル -->
+  <div class="modal" id="readme-modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>📄 システムマニュアル (README)</h3>
+        <button type="button" class="btn-close-icon" onclick="closeReadmeModal()">✕</button>
+      </div>
+      <div class="readme-container" id="readme-container">
+        読み込み中...
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" onclick="closeReadmeModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
