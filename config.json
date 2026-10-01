@@ -1,67 +1,70 @@
 {
-	"settings": {
-		"mode": "interval",
-		"intervalMs": 10000,
-		"timeoutMs": 2000,
-		"retryCount": 2,
-		"defaultWebhookUrls": ["https://hooks.slack.com/services/DUMMY/DUMMY/DUMMY"]
-	},
-	"targets": [
-		{
-			"id": "target-1790858389357",
-			"label": "iphone_test",
-			"ip": "192.168.100.17",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		},
-		{
-			"id": "target-1790860247932",
-			"label": "server",
-			"ip": "192.168.100.142",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		},
-		{
-			"id": "target-002",
-			"label": "メディアルーター（YAMAHA）",
-			"ip": "192.168.150.101",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		},
-		{
-			"id": "target-001",
-			"label": "ローカル",
-			"ip": "172.16.25.250",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		},
-		{
-			"id": "target-1790859588827",
-			"label": "データ放送L3スイッチ",
-			"ip": "192.168.150.140",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		},
-		{
-			"id": "target-1790859667976",
-			"label": "新WEB",
-			"ip": "172.16.25.249",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		},
-		{
-			"id": "target-1790859618014",
-			"label": "データ放送 OFDM変調器",
-			"ip": "192.168.150.141",
-			"enabled": false,
-			"webhookUrls": [],
-			"settingsOverride": null
-		}
-	]
+  "settings": {
+    "mode": "interval",
+    "intervalMs": 31000,
+    "timeoutMs": 2000,
+    "retryCount": 2,
+    "defaultWebhookUrls": [
+      "https://hooks.slack.com/services/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",
+      "https://chat.googleapis.com/v1/spaces/AAQA6TDiMP0/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=xnGBwrVa5Macg6jPZGYX1YaDGbwe6cXI0NHQd1i8Wu8"
+    ]
+  },
+  "targets": [
+    {
+      "id": "target-1790858389357",
+      "label": "iphone_test",
+      "ip": "192.168.100.17",
+      "enabled": false,
+      "webhookUrls": [],
+      "settingsOverride": null
+    },
+    {
+      "id": "target-1790860247932",
+      "label": "server",
+      "ip": "192.168.100.142",
+      "enabled": true,
+      "webhookUrls": [],
+      "settingsOverride": null
+    },
+    {
+      "id": "target-002",
+      "label": "メディアルーター（YAMAHA）",
+      "ip": "192.168.150.101",
+      "enabled": false,
+      "webhookUrls": [],
+      "settingsOverride": null
+    },
+    {
+      "id": "target-001",
+      "label": "ローカル",
+      "ip": "172.16.25.250",
+      "enabled": false,
+      "webhookUrls": [],
+      "settingsOverride": null
+    },
+    {
+      "id": "target-1790859588827",
+      "label": "データ放送L3スイッチ",
+      "ip": "192.168.150.140",
+      "enabled": false,
+      "webhookUrls": [],
+      "settingsOverride": null
+    },
+    {
+      "id": "target-1790859667976",
+      "label": "新WEB",
+      "ip": "172.16.25.249",
+      "enabled": false,
+      "webhookUrls": [],
+      "settingsOverride": null
+    },
+    {
+      "id": "target-1790859618014",
+      "label": "データ放送 OFDM変調器",
+      "ip": "192.168.150.141",
+      "enabled": false,
+      "webhookUrls": [],
+      "settingsOverride": null
+    }
+  ]
 }

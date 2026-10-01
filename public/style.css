@@ -158,7 +158,6 @@ body {
   gap: 12px;
 }
 
-/* ビュー切替ボタン (リスト / カード) */
 .view-toggle {
   display: flex;
   background: #f1f5f9;
@@ -213,14 +212,13 @@ table tr:hover {
   background: #f8fafc;
 }
 
-/* ---------------- カード型表示スタイル (4カラム指定) ---------------- */
 .card-grid-wrapper {
   margin-top: 8px;
 }
 
 .device-card-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 基本4カラム */
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 
@@ -321,7 +319,6 @@ table tr:hover {
   min-width: 0;
 }
 
-/* ドラッグ＆ドロップ共通スタイル */
 tr.draggable-row {
   -webkit-user-select: none;
      -moz-user-select: none;

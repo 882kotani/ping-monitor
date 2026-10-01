@@ -8,7 +8,7 @@ const PORT = 50002;
 const HOST = 'localhost';
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const SCHEDULES_PATH = path.join(__dirname, 'schedules.json');
-const README_PATH = path.join(__dirname, 'README.md'); // READMEパス
+const README_PATH = path.join(__dirname, 'README.md');
 const LOG_DIR = path.join(__dirname, 'log');
 const LOG_FILE = path.join(LOG_DIR, 'monitor.log');
 
@@ -261,7 +261,6 @@ async function restartMonitorScheduler() {
 	}
 }
 
-// 【新規】README.md 取得 API
 app.get('/api/readme', async (req, res) => {
 	try {
 		const content = await fs

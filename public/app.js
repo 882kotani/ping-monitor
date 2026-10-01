@@ -1,10 +1,9 @@
 const UI_REFRESH_INTERVAL = 3000;
 let isDraggingRow = false;
 let isEditingSettings = false;
-let currentTargetView = localStorage.getItem('targetView') || 'list'; // 'list' | 'card'
+let currentTargetView = localStorage.getItem('targetView') || 'list';
 
 document.addEventListener('DOMContentLoaded', () => {
-	// 初期表示ビューを反映
 	switchTargetView(currentTargetView, false);
 
 	fetchStatus();
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById('ping-test-form').addEventListener('submit', handleRunPingTest);
 });
 
-// ビュー切り替え（リスト <-> カード）
 function switchTargetView(viewMode, save = true) {
 	currentTargetView = viewMode;
 	if (save) {
@@ -54,7 +52,6 @@ function switchTargetView(viewMode, save = true) {
 		btnList.classList.add('active');
 	}
 
-	// 表示切り替え後にステータス再描画
 	fetchStatus();
 }
 
@@ -155,7 +152,6 @@ function updateTableAndStats(targets, globalSettings) {
 		downCount = 0,
 		disabledCount = 0;
 
-	// カウント処理
 	targets.forEach((t) => {
 		if (!t.enabled) disabledCount++;
 		else if (t.isAlive === true) upCount++;
@@ -167,7 +163,6 @@ function updateTableAndStats(targets, globalSettings) {
 	document.getElementById('stat-down').textContent = downCount;
 	document.getElementById('stat-disabled').textContent = disabledCount;
 
-	// ビューモードに応じた描画
 	if (currentTargetView === 'card') {
 		renderCardView(targets, globalSettings);
 	} else {
@@ -175,7 +170,6 @@ function updateTableAndStats(targets, globalSettings) {
 	}
 }
 
-// 1. リスト表示パターン描画
 function renderListView(targets, globalSettings) {
 	const tbody = document.getElementById('target-table-body');
 	tbody.innerHTML = '';
@@ -240,7 +234,6 @@ function renderListView(targets, globalSettings) {
 	initTableDragAndDrop();
 }
 
-// 2. カード表示パターン描画 (4カラム対応)
 function renderCardView(targets, globalSettings) {
 	const grid = document.getElementById('target-card-grid');
 	grid.innerHTML = '';
@@ -338,7 +331,6 @@ function selectMonitorMode(mode, userAction = true) {
 	}
 }
 
-// リストD&D制御
 let draggedRow = null;
 
 function initTableDragAndDrop() {
@@ -384,7 +376,6 @@ function initTableDragAndDrop() {
 	});
 }
 
-// カードD&D制御
 function initCardDragAndDrop() {
 	const grid = document.getElementById('target-card-grid');
 	if (!grid) return;
@@ -650,14 +641,28 @@ async function handleRunPingTest(e) {
 	}
 }
 
+// 【機能追加】30秒(30000ms)未満の確認ダイアログ制御
 async function handleSaveSettings(e) {
 	e.preventDefault();
 	const mode = document.getElementById('setting-mode-select').value;
 	const webhooksText = document.getElementById('setting-webhooks').value;
+	const intervalMs = Number(document.getElementById('setting-interval-ms').value) || 30000;
+
+	// 監視周期が 30000ms (30秒) 未満の場合に警告ダイアログを表示
+	if (mode === 'interval' && intervalMs < 30000) {
+		const isOk = confirm(
+			`監視周期が ${intervalMs}ms (${(intervalMs / 1000).toFixed(1)}秒) に設定されています。\n` +
+				`30秒未満の短い周期に設定すると、機器数や環境によってサーバーやネットワークに大きな負荷がかかる可能性があります。\n\n` +
+				`このまま保存して続行しますか？`,
+		);
+		if (!isOk) {
+			return;
+		}
+	}
 
 	const payload = {
 		mode,
-		intervalMs: Number(document.getElementById('setting-interval-ms').value) || 30000,
+		intervalMs,
 		timeoutMs: Number(document.getElementById('setting-timeout').value),
 		retryCount: Number(document.getElementById('setting-retry').value),
 		defaultWebhookUrls: webhooksText
